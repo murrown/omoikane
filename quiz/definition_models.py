@@ -13,8 +13,7 @@ RISQUE_VALUES = [
 
 
 class Expression(models.Model):
-    text = models.CharField(max_length=75, null=False,
-                            db_index=True, unique=True)
+    text = models.CharField(max_length=75, null=False, primary_key=True)
 
     def __str__(self):
         return "%s %s" % (self.entry_id, self.text)
