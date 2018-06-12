@@ -13,11 +13,8 @@ RISQUE_VALUES = [
 
 
 class Expression(models.Model):
-    text = models.CharField(max_length=75, null=False, db_index=True)
-    entry_id = models.IntegerField(db_index=True)
-
-    class Meta:
-        unique_together = ("text", "entry_id")
+    text = models.CharField(max_length=75, null=False,
+                            db_index=True, unique=True)
 
     def __str__(self):
         return "%s %s" % (self.entry_id, self.text)
@@ -39,41 +36,16 @@ class Expression(models.Model):
         return result
 
 
-class Reading(models.Model):
-    text = models.CharField(max_length=75, null=False, db_index=True)
-    entry_id = models.IntegerField(db_index=True)
-
-    class Meta:
-        unique_together = ("text", "entry_id")
-
-    def __str__(self):
-        return "%s %s" % (self.entry_id, self.text)
-
-
-class Sense(models.Model):
-    text = models.TextField(null=False)
-    pos = models.CharField(max_length=100, default="")
-    entry_id = models.IntegerField(db_index=True)
-    sense_id = models.IntegerField(db_index=True)
-
-    class Meta:
-        unique_together = [("text", "entry_id"),
-                           ("sense_id", "entry_id")]
-
-    def __str__(self):
-        return "%s.%s %s" % (self.entry_id, self.sense_id, self.text)
-
-
 class Association(models.Model):
-    expression = models.ForeignKey(Expression, null=True)
-    reading = models.ForeignKey(Reading, null=False)
-    sense = models.ForeignKey(Sense, null=False)
-    entry_id = models.IntegerField(db_index=True)
-    priorities = models.IntegerField(db_index=True, default=0)
+    entry_id = models.IntegerField(null=False, db_index=True)
+    expression = models.ForeignKey(Expression, null=True, db_index=True)
+    reading = models.CharField(max_length=75, null=False)
+    sense = models.TextField(null=False)
+    sense_number = models.IntegerField()
+    pos = models.CharField(max_length=100, default="")
 
     class Meta:
         unique_together = ("expression", "reading", "sense")
-        index_together = [("expression", "reading")]
 
     def __str__(self):
         if self.expression:
