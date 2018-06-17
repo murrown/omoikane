@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from datetime import datetime, timedelta
 from pytz import utc
 import romkan
-from .definition_models import Association
+from .definition_models import Association, Expression
 
 
 ONE_MINUTE = 60
@@ -21,13 +21,14 @@ def utcnow():
 
 class UserExpression(models.Model):
     user = models.ForeignKey(User, null=False, db_index=True)
-    expression = models.CharField(max_length=75, null=True, db_index=True)
+    expression = models.ForeignKey(Expression, null=False, db_index=True)
     modified = models.DateTimeField(auto_now=True)
     due = models.DateTimeField(default=utcnow)
     interval = models.IntegerField(default=0, null=False)
 
     class Meta:
         unique_together = ("user", "expression")
+        index_together = [("user", "expression")]
 
     def succeed(self):
         now = utcnow()
@@ -64,6 +65,7 @@ class UserExpression(models.Model):
 
 
 class UserGuess(models.Model):
-    user = models.ForeignKey(User, null=False, db_index=True)
+    user_expression = models.ForeignKey(
+        UserExpression, null=False, db_index=True)
     created = models.DateTimeField(auto_now_add=True)
     success = models.BooleanField(null=False)
