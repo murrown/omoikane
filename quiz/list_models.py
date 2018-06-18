@@ -3,13 +3,19 @@ from .definition_models import Expression
 
 
 class QuizList(models.Model):
-    name = models.CharField(max_length=32, primary_key=True)
+    name = models.CharField(max_length=100, unique=True)
 
-    def add_item(self, expression):
+    def add_item(self, expression, ignore_duplicate=False):
+        if ignore_duplicate:
+            try:
+                qli = QuizListItem.objects.get(quizlist=self,
+                                               expression=expression)
+                return qli
+            except QuizListItem.DoesNotExist:
+                pass
         num_items = QuizListItem.objects.filter(quizlist=self).count() + 1
-        qli = QuizListItem(quizlist=self, expression=expression,
-                           list_order=num_items)
-        qli.save()
+        qli = QuizListItem.objects.create(
+            quizlist=self, expression=expression, list_order=num_items)
         return qli
 
 
