@@ -1,0 +1,25 @@
+{% load static from staticfiles %}
+
+<head>
+    <script src="{% static "jquery.js" %}"></script>
+    <script src="{% static "csrf.js" %}"></script>
+</head>
+
+<body>
+<font face="arial">
+<center> |
+    <a href="/">Home</a> |
+    {% if user.pk %}
+        Hello <b>{{ user.username }}</b> |
+        <a href="/logout">Logout</a> |
+    {% else %}
+        <a href="/login">Login</a> |
+        <a href="/eligible/">Register</a> |
+    {% endif %}
+<br>
+<hr>
+
+    {% block content %}{% endblock %}
+
+</center>
+</body>

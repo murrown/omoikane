@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% load static from staticfiles %}
+
+{% block content %}
+<div id="myform">
+    <input id="answerfield" type="text" name="answer">
+</div>
+QUIZ <br/>
+<script src="{% static "quiz.js" %}"></script>
+{% endblock %}
