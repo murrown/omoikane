@@ -18,6 +18,11 @@ class QuizList(models.Model):
             quizlist=self, expression=expression, list_order=num_items)
         return qli
 
+    @property
+    def expressions(self):
+        return QuizListItem.objects.filter(quizlist=self).order_by(
+            "list_order").values_list("expression__text", flat=True)
+
 
 class QuizListItem(models.Model):
     quizlist = models.ForeignKey(QuizList, null=False, db_index=True)

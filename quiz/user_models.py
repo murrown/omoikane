@@ -1,10 +1,12 @@
 from django.db import models
+from django.db.models.query import QuerySet
 from django.contrib.auth.models import User
 
 from datetime import datetime, timedelta
 from pytz import utc
 import romkan
 from .definition_models import Association, Expression
+from .list_models import QuizList
 
 
 ONE_MINUTE = 60
@@ -29,6 +31,31 @@ class UserExpression(models.Model):
     class Meta:
         unique_together = ("user", "expression")
         index_together = [("user", "expression")]
+
+    @classmethod
+    def get_due_expressions(cls, user, quizlist=None):
+        now = utcnow()
+        due_uexs = UserExpression.objects.filter(user=user, due__lt=now)
+        if quizlist is not None:
+            if isinstance(quizlist, int):
+                quizlist = QuizList.objects.get(id=quizlist)
+            list_expressions = quizlist.expressions
+            due_uexs = due_uexs.filter(expression__text__in=list_expressions)
+
+            if due_uexs.count() == 0:
+                list_expressions = [ex for ex in list_expressions
+                    if ex not in UserExpression.objects.filter(user=user)
+                    .values_list("expression__text", flat=True)]
+                if list_expressions:
+                    uex = UserExpression.objects.create(
+                        user=user, expression=Expression.objects.get(
+                            text=list_expressions[0]))
+                due_uexs = [uex]
+
+        if isinstance(due_uexs, QuerySet):
+            due_uexs = [uex for uex in due_uexs]
+
+        return due_uexs
 
     def succeed(self):
         now = utcnow()
