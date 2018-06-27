@@ -42,7 +42,7 @@ class UserExpression(models.Model):
             list_expressions = quizlist.expressions
             due_uexs = due_uexs.filter(expression__text__in=list_expressions)
 
-            if due_uexs.count() == 0:
+            if due_uexs.count() <= 1:
                 list_expressions = [ex for ex in list_expressions
                     if ex not in UserExpression.objects.filter(user=user)
                     .values_list("expression__text", flat=True)]
@@ -50,12 +50,31 @@ class UserExpression(models.Model):
                     uex = UserExpression.objects.create(
                         user=user, expression=Expression.objects.get(
                             text=list_expressions[0]))
-                due_uexs = [uex]
+                    due_uexs = [uex]
 
         if isinstance(due_uexs, QuerySet):
             due_uexs = [uex for uex in due_uexs]
 
         return due_uexs
+
+    @property
+    def quiz_dict(self):
+        ex = self.expression
+        assocs, readings = ex.get_summary_data()
+        for r in list(readings):
+            try:
+                romr = romkan.to_roma(r)
+            except TypeError:
+                import pdb; pdb.set_trace()
+            readings.append(romr)
+            if "nn" in romr:
+                readings.append(romr.replace("nn", "n"))
+        rdict = {"expression": ex.text,
+                 "readings": readings,
+                 "associations": [{"sense": a.sense, "reading": a.reading}
+                                  for a in assocs]
+                }
+        return rdict
 
     def succeed(self):
         now = utcnow()
@@ -68,11 +87,14 @@ class UserExpression(models.Model):
         if self.interval and new_interval < timedelta(0, self.interval):
             raise Exception("Bad interval.")
         self.due = due
+        UserGuess.objects.create(user_expression=self, success=True)
+        self.save()
 
     def fail(self):
-        self.score = self.score * self.user.profile.score_cut
         self.interval = DEFAULT_INTERVAL
         self.due = utcnow()
+        UserGuess.objects.create(user_expression=self, success=False)
+        self.save()
 
     def verify_reading(self, guess, readings=None):
         guess = romkan.to_roma(romkan.to_kana(guess.replace(' ', '')))
@@ -82,13 +104,6 @@ class UserExpression(models.Model):
                            .values_list('reading', flat=True))
         readings = map(romkan.to_roma, readings)
         return guess in readings
-
-    def guess_reading(self, guess, readings=None):
-        success = self.verify_reading(guess, readings=readings)
-        UserGuess.objects.create(user_expression=self, success=success)
-        self.succeed() if success else self.fail()
-        self.save()
-        return success
 
 
 class UserGuess(models.Model):

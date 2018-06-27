@@ -33,7 +33,9 @@ class Expression(models.Model):
 
         assocs = list(Association.objects.filter(expression=self)
                       .order_by("-priority", "entry_id", "sense_number"))
-        all_readings = set([a.reading for a in assocs])
+        all_readings = [a.reading for a in assocs if a.reading is not None]
+        all_readings = sorted(set(all_readings),
+                              key=lambda ar: all_readings.index(ar))
 
         assocs = list(unique_everseen(
             assocs, key=lambda a: (a.entry_id, a.sense_number)))

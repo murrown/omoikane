@@ -1,25 +1,35 @@
 {% load static from staticfiles %}
 
+<!doctype html>
 <head>
-    <script src="{% static "jquery.js" %}"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script src="{% static "csrf.js" %}"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 </head>
 
 <body>
-<font face="arial">
-<center> |
-    <a href="/">Home</a> |
+
+<style type="text/css">
+   body { background: slategray !important; }
+</style>
+
+<center>
+<div class="bg-light p-2 m-2">
+    <h1>Omoikane</h1>
+    <h5>Japanese Language Learning App</h5>
+    <a href="/" class="btn btn-secondary">Home</a>
     {% if user.pk %}
-        Hello <b>{{ user.username }}</b> |
-        <a href="/logout">Logout</a> |
+        <a href="/logout" class="btn btn-secondary">Logout</a>
+        Hello, <b>{{ user.username }}</b>.
     {% else %}
-        <a href="/login">Login</a> |
-        <a href="/eligible/">Register</a> |
+        <a href="/login" class="btn btn-secondary">Login</a>
+        <a href="/register" class="btn btn-secondary">Register</a>
     {% endif %}
-<br>
-<hr>
-
+</div>
+<div class="container">
+<div class="card card-body bg-light" style="max-width: 48rem;">
     {% block content %}{% endblock %}
-
-</center>
+</div>
+<div>
 </body>

@@ -2,9 +2,34 @@
 {% load static from staticfiles %}
 
 {% block content %}
-<div id="myform">
-    <input id="answerfield" type="text" name="answer">
+
+<div id="selectionform" style="display:none">
+    <h5 class="card-title">Select a Course</h5>
+    <table id="selectiontable">
+    </table>
 </div>
-QUIZ <br/>
+
+<div id="quizform" style="display:none">
+    <h5 id="quizlist_title"></h5>
+    <div class="card card-body text-white bg-primary" style="max-width: 36rem;">
+        <h1 id="expression_text" class="p-3 m-3 text-white bg-primary"></h2>
+        <div id="answertext" style="display:none">
+            Write the pronunciation of this word in the text box.
+            <input id="answerfield" class="m-2" type="text" name="answer" style="max-width: 18rem;">
+        </div>
+        <div id="answeryesno" class="p-3" style="display:none">
+            Do you understand this?
+            <br>
+            <div id="answeryesbtn" class="btn border btn-success btn-lg m-3">Yes</div>
+            <div id="answernobtn" class="btn border btn-danger btn-lg m-3">No</div>
+        </div>
+        <div id="continue" style="display:none">
+            <div id="continuebtn" class="btn border btn-secondary btn-lg">Continue</div>
+        </div>
+    </div>
+    <div id="results" class="card card-body bg-primary text-white p-3 m-3" style="max-width: 36rem; display:none">
+    </div>
+</div>
+
 <script src="{% static "quiz.js" %}"></script>
 {% endblock %}
