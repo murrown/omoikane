@@ -62,17 +62,15 @@ class UserExpression(models.Model):
         ex = self.expression
         assocs, readings = ex.get_summary_data()
         for r in list(readings):
-            try:
-                romr = romkan.to_roma(r)
-            except TypeError:
-                import pdb; pdb.set_trace()
+            romr = romkan.to_roma(r)
             readings.append(romr)
             if "nn" in romr:
                 readings.append(romr.replace("nn", "n"))
         rdict = {"expression": ex.text,
                  "readings": readings,
                  "associations": [{"sense": a.sense, "reading": a.reading}
-                                  for a in assocs]
+                                  for a in assocs],
+                 "audio": ex.audio if ex.audio else "",
                 }
         return rdict
 

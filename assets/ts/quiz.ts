@@ -5,6 +5,8 @@ const answerfield: HTMLInputElement = <HTMLInputElement>$("#answerfield")[0];
 const answeryesno = $("#answeryesno")[0];
 const answertext = $("#answertext")[0];
 const continuediv = $("#continue")[0];
+const audiobtn = $("#audiobtn")[0];
+const static_url = $("#static")[0].innerHTML;
 
 class Association {
     constructor(public expression: string, public reading: string, public sense: string){}
@@ -22,11 +24,21 @@ class Association {
 class Question {
     public associations: Association[] = [];
 
-    constructor(public expression: string, public readings: string[], assoc_list: any[]){
+    constructor(public expression: string, public readings: string[],
+                assoc_list: any[], public audio: string){
         for (var val of assoc_list) {
             let association = new Association(expression, val.reading, val.sense);
             this.associations.push(association);
         }
+    }
+
+    expression_with_breaks(): string{
+        var broken: string[] = this.expression.split(" ");
+        if (broken.length <= 1){
+            return this.expression;
+        }
+        var spanstyle: string =  "<span style=\"display:inline-block\">"
+        return spanstyle + broken.join("</span> " + spanstyle) + "</span>"
     }
 
     toString(): string{
@@ -52,9 +64,9 @@ class Quiz {
     get_next_question(){
         if (this.active_question == null && this.questions.length > 0){
             this.active_question = this.questions.shift()!;
-            $("#expression_text").html(this.active_question.expression);
-            //alert(this.active_question.readings.length);
             continuediv.style.display = "none";
+            $("#expression_text").html(this.active_question.expression_with_breaks());
+            $("#expression_text")[0].style.display = "block";
             if (this.active_question.readings.length > 0){
                 answeryesno.style.display = "none";
                 answertext.style.display = "block";
@@ -63,6 +75,11 @@ class Quiz {
                 answertext.style.display = "none";
                 answeryesno.style.display = "block";
                 $("#answeryesbtn")[0].focus();
+            }
+            if (this.active_question.audio) {
+                audiobtn.style.display = "block";
+            } else {
+                audiobtn.style.display = "none";
             }
         }
     }
@@ -80,13 +97,16 @@ class Quiz {
             return;
         }
         this.active_question = null;
+        audiobtn.style.display = "none";
         resultsdiv.style.display = "none";
+        $("#expression_text")[0].style.display = "none";
+        continuediv.style.display = "none";
         answerfield.value = "";
         if (thisquiz.questions.length == 0){
             $.post("/quiz/post/due", {"quizlist": this.quizlist.id},
                   function(response){
                 for (var val of response.results) {
-                    let q = new Question(val.expression, val.readings, val.associations);
+                    let q = new Question(val.expression, val.readings, val.associations, val.audio);
                     thisquiz.questions.push(q);
                 }
                 if (thisquiz.questions.length == 0){
@@ -113,12 +133,13 @@ class Quiz {
     initialize_selection(){
         const thisquiz: Quiz = this;
         $.get("/quiz/get/lists", function(response){
+            var did_focus: boolean = false;
             for (var val of response.results) {
                 let row = $("<tr>");
                 let scorecell = $("<td class=\"p-3\">");
                 let namecell = $("<td>");
                 let quizlist = new QuizList(val.name, val.id);
-                let link = $("<a href=\"#\" class=\"btn btn-primary\">");
+                let link = $("<button class=\"btn btn-primary\">");
                 scorecell.html(val.done + " / " + val.tried + " / " + val.total);
                 row.append(scorecell);
                 row.append(namecell);
@@ -129,6 +150,7 @@ class Quiz {
                     thisquiz.select_list(quizlist);
                 })
                 $("#selectiontable").append(row);
+                if (did_focus == false) link.focus();
             }
             quizform.style.display = "none";
             selectionform.style.display = "block";
@@ -192,16 +214,21 @@ const quiz = new Quiz();
 $(document).ready(function(){
     quiz.initialize_selection();
     $(document).keypress(function(e) {
-        if (e.key == "Enter"){
-            if (answertext.style.display != "none"){
-                quiz.guess();
-            } else if (continuediv.style.display != "none"){
-                $("#continuebtn").trigger("click");
-            }
+        if (e.key == "Enter" && answertext.style.display != "none"){
+            e.preventDefault();
+            quiz.guess();
+        } else if ((e.key == "Enter" || e.key == "c") && continuediv.style.display != "none"){
+            e.preventDefault();
+            $("#continuebtn").trigger("click");
+        } else if (e.key == "p" && audiobtn.style.display != "none"){
+            e.preventDefault();
+            $("#audiobtn").trigger("click");
         } else if (answeryesno.style.display != "none"){
             if (e.key == "y"){
+                e.preventDefault();
                 $("#answeryesbtn").trigger("click");
             } else if (e.key == "n"){
+                e.preventDefault();
                 $("#answernobtn").trigger("click");
             }
         }
@@ -217,5 +244,11 @@ $(document).ready(function(){
     $("#answernobtn").click(function(e){
         e.preventDefault();
         quiz.guess(false);
+    })
+    $("#audiobtn").click(function(e){
+        e.preventDefault();
+        if (quiz.active_question != null && quiz.active_question.audio){
+            new Audio(static_url + quiz.active_question.audio).play();
+        }
     })
 });

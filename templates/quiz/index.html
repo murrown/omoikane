@@ -3,6 +3,8 @@
 
 {% block content %}
 
+<span id="static" style="display:none">{% static "" %}</span>
+
 <div id="selectionform" style="display:none">
     <h5 class="card-title">Select a Course</h5>
     <table id="selectiontable">
@@ -11,8 +13,10 @@
 
 <div id="quizform" style="display:none">
     <h5 id="quizlist_title"></h5>
-    <div class="card card-body text-white bg-primary" style="max-width: 36rem;">
-        <h1 id="expression_text" class="p-3 m-3 text-white bg-primary"></h2>
+    <div class="card card-body text-white bg-primary" style="min-height: 12rem; max-width: 36rem;">
+        <center>
+        <h1 id="expression_text" class="p-3 m-3 text-white bg-primary"></h1>
+        <button id="audiobtn" class="btn border btn-secondary m-3" style="display:none">Play Audio</button>
         <div id="answertext" style="display:none">
             Write the pronunciation of this word in the text box.
             <input id="answerfield" class="m-2" type="text" name="answer" style="max-width: 18rem;">
@@ -20,11 +24,11 @@
         <div id="answeryesno" class="p-3" style="display:none">
             Do you understand this?
             <br>
-            <div id="answeryesbtn" class="btn border btn-success btn-lg m-3">Yes</div>
-            <div id="answernobtn" class="btn border btn-danger btn-lg m-3">No</div>
+            <button id="answeryesbtn" class="btn border btn-success btn-lg m-3">Yes</button>
+            <button id="answernobtn" class="btn border btn-danger btn-lg m-3">No</button>
         </div>
         <div id="continue" style="display:none">
-            <div id="continuebtn" class="btn border btn-secondary btn-lg">Continue</div>
+            <button id="continuebtn" class="btn border btn-secondary btn-lg">Continue</button>
         </div>
     </div>
     <div id="results" class="card card-body bg-primary text-white p-3 m-3" style="max-width: 36rem; display:none">
