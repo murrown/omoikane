@@ -119,7 +119,7 @@ class Quiz {
                 let namecell = $("<td>");
                 let quizlist = new QuizList(val.name, val.id);
                 let link = $("<a href=\"#\" class=\"btn btn-primary\">");
-                scorecell.html("0 / 0 / 0");
+                scorecell.html(val.done + " / " + val.tried + " / " + val.total);
                 row.append(scorecell);
                 row.append(namecell);
                 link.html(val.name);

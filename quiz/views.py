@@ -2,7 +2,8 @@ from django.shortcuts import render, render_to_response
 from django.template import RequestContext
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
-from .models import QuizList, UserExpression
+from .models import QuizList, QuizListItem, UserExpression
+from .user_models import utcnow
 import urllib
 
 
@@ -12,8 +13,20 @@ def index(request):
     return render(request, "quiz/index.html", context=context)
 
 def lists(request):
-    response = JsonResponse({"results": list(
-        QuizList.objects.order_by("name").values("id", "name"))}, safe=False)
+    results = []
+    now = utcnow()
+    uexs = (UserExpression.objects
+            .filter(user=request.user).select_related("expression"))
+    done_exs = set([uex.expression.id for uex in uexs if uex.due > now])
+    all_exs = set([uex.expression.id for uex in uexs])
+    for ql in QuizList.objects.order_by("name").all():
+        items = set(QuizListItem.objects
+            .filter(quizlist=ql).values_list("expression", flat=True))
+        tried_items = items & all_exs
+        done_items = items & done_exs
+        results.append({"id": ql.id, "name": ql.name, "done": len(done_items),
+                        "tried": len(tried_items), "total": len(items)})
+    response = JsonResponse({"results": results}, safe=False)
     return response
 
 def due(request):
