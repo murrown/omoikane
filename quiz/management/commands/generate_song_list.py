@@ -51,18 +51,18 @@ class Command(BaseCommand):
                 if start is None or finish is None:
                     continue
                 if jp_text is None:
-                    jp_text = line
+                    jp_text = line.replace("　", " ")
                     continue
                 en_text = line
                 ex, _ = Expression.objects.get_or_create(text=jp_text)
                 ex_lines.append(ex)
                 assoc, _ = Association.objects.get_or_create(
                     expression=ex, sense=en_text, sense_number=0)
-                if finish > start >= 0 and False:
-                    ex.audio = "{0:0>8}.m4a".format(ex.id)
+                if finish > start >= 0:
+                    ex.audio = "{0:0>8}.opus".format(ex.id)
                     ex.save()
                     cmd = ["ffmpeg", "-i", options["audio_filename"],
-                           "-acodec", "libfdk_aac", "-vbr", "1", "-ac", "1",
+                           "-acodec", "libopus", "-vbr", "1", "-ac", "1",
                            "-ss", "%s" % start, "-t", "%s" % (finish-start),
                            "-map", "0:a", "-y", ex.audio]
                     call(cmd)
