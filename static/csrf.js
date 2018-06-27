@@ -1,3 +1,4 @@
+// from https://docs.djangoproject.com/en/2.0/ref/csrf/#ajax
 function getCookie(name) {
     var cookieValue = null;
     if (document.cookie && document.cookie !== '') {
