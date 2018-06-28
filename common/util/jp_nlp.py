@@ -17,7 +17,11 @@ def get_unconjugated(verb):
         if verb.endswith(suffix):
             for root in verb_suffix_dictionary[suffix]:
                 dictionary_form = (verb[:-len(suffix)] + root)
+                assert len(dictionary_form) <= len(verb)
                 candidates.add(dictionary_form)
+                for uncon in get_unconjugated(dictionary_form):
+                    if len(uncon) <= len(dictionary_form):
+                        candidates.add(uncon)
     candidates.add(verb + "る")
     return candidates
 
