@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
 from django.db import models
 from django.db.models import Q
+from django.apps import apps
 
 from more_itertools import unique_everseen
 from collections import defaultdict
-
 
 RISQUE_VALUES = [
     "rude or X-rated term (not displayed in educational software)",
     "colloquialism",
     "derogatory",
     "vulgar expression or word",
-    "often derog.",
     ]
 
 
@@ -31,8 +30,9 @@ class Expression(models.Model):
     def get_summary_data(self):
         TARGET_NUMBER = 4
 
-        assocs = list(Association.objects.filter(expression=self)
-                      .order_by("-priority", "entry_id", "sense_number"))
+        assocs = list(Association.objects
+                      .filter(expression=self, priority__gte=0)
+                      .order_by("-priority", "entry_id", "sense_number", "id"))
         all_readings = [a.reading for a in assocs if a.reading is not None]
         all_readings = sorted(set(all_readings),
                               key=lambda ar: all_readings.index(ar))
@@ -43,8 +43,6 @@ class Expression(models.Model):
         temp = [a for a in assocs if a.priority > 0]
         if len(temp) >= TARGET_NUMBER:
             assocs = temp
-
-        # TODO: Remove vulgar and other terms
 
         prioritized_unique_entries = []
         entry_group_dict = defaultdict(list)
@@ -68,7 +66,7 @@ class Expression(models.Model):
             prioritized_unique_entries.append(pue)
 
         diverse_selection = sorted(diverse_selection,
-            key=lambda a: (-a.priority, a.reading, a.entry_id, a.sense_number))
+            key=lambda a: (-a.priority, a.entry_id, a.sense_number, a.id))
 
         return diverse_selection, all_readings
 
@@ -100,3 +98,14 @@ class Association(models.Model):
                 self.expression.text, self.reading, self.sense)
         else:
             return "%s,%s" % (self.reading, self.sense)
+
+    @property
+    def is_potentially_rude(self):
+        SenseKeyValue = apps.get_model("quiz", "SenseKeyValue")
+        skvs = SenseKeyValue.objects.filter(
+            entry_id=self.entry_id, sense_number=self.sense_number, key="misc")
+
+        for skv in skvs:
+            if skv.value in RISQUE_VALUES:
+                return True
+        return False

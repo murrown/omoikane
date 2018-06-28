@@ -1,6 +1,6 @@
 from django.db import models
 from django.db.models import Q, F
-from .definition_models import Expression, Association
+from .definition_models import Expression, Association, RISQUE_VALUES
 
 
 class KeyValue(models.Model):
@@ -51,9 +51,10 @@ class SenseKeyValue(KeyValue):
                              super(SenseKeyValue, self).__str__())
 
 
-
-def calculate_priority_all():
-    Association.objects.all().update(priority=0)
+def calculate_priority_all(assocs=None):
+    if assocs is None:
+        assocs = Association.objects.all()
+    assocs.update(priority=0)
     point_values = {
         "news1": 13000,
         "news2": 1000,
@@ -73,12 +74,18 @@ def calculate_priority_all():
     roots = set([''.join(c for c in key if c not in "0123456789")
                  for key in point_values if point_values[key] > 0])
 
-    assocs = (Association.objects.exclude(expression=None)
-                                 .exclude(reading=None))
+    assocs = (assocs.exclude(expression=None)
+                    .exclude(reading=None))
     num_total = assocs.count()
     for i, assoc in enumerate(assocs):
         if not i % 1000:
             print("%s / %s" % (i, num_total))
+
+        if assoc.is_potentially_rude:
+            assoc.priority = -1
+            assoc.save()
+            continue
+
         ekv = (ExpressionKeyValue.objects
             .filter(key="ke_pri", expression=assoc.expression,
                     entry_id=assoc.entry_id)
@@ -101,3 +108,11 @@ def calculate_priority_all():
                     continue
             assoc.priority = sum(point_values[c] for c in chosen)
             assoc.save()
+
+
+def calculate_priority_rude():
+    entry_ids = (SenseKeyValue.objects
+                 .filter(key="misc", value__in=RISQUE_VALUES)
+                 .values_list("entry_id", flat=True))
+    assocs = Association.objects.filter(entry_id__in=entry_ids)
+    calculate_priority_all(assocs)
