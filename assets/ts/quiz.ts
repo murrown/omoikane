@@ -129,12 +129,12 @@ class Quiz {
             var did_focus: boolean = false;
             for (var val of response.results) {
                 let row = $("<tr>");
-                let scorecell = $("<td class=\"p-3\">");
-                let namecell = $("<td>");
+                let namecell = $("<td class=\"p-2\">");
                 let quizlist = new QuizList(val.name, val.id);
                 let link = $("<button class=\"btn btn-primary\">");
-                scorecell.html(val.done + " / " + val.tried + " / " + val.total);
-                row.append(scorecell);
+                for (var subval of [val.done, "/", val.tried, "/", val.total]) {
+                    row.append($("<td align=center class=\"p-1\">" + subval + "</td>"))
+                }
                 row.append(namecell);
                 link.html(val.name);
                 namecell.append(link);
