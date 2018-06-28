@@ -55,7 +55,8 @@ class Command(BaseCommand):
                     continue
                 en_text = line
                 ex, _ = Expression.objects.get_or_create(text=jp_text)
-                ex_lines.append(ex)
+                if ex not in ex_lines:
+                    ex_lines.append(ex)
                 assoc, _ = Association.objects.get_or_create(
                     expression=ex, sense=en_text, sense_number=0)
                 if finish > start >= 0:
