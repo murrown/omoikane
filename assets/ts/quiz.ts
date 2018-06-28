@@ -1,11 +1,3 @@
-const selectionform = $("#selectionform")[0];
-const quizform = $("#quizform")[0];
-const resultsdiv = $("#results")[0];
-const answerfield: HTMLInputElement = <HTMLInputElement>$("#answerfield")[0];
-const answeryesno = $("#answeryesno")[0];
-const answertext = $("#answertext")[0];
-const continuediv = $("#continue")[0];
-const audiobtn = $("#audiobtn")[0];
 const static_url = $("#static")[0].innerHTML;
 
 class Association {
@@ -64,30 +56,31 @@ class Quiz {
     get_next_question(){
         if (this.active_question == null && this.questions.length > 0){
             this.active_question = this.questions.shift()!;
-            continuediv.style.display = "none";
+            $("#continue").css("display", "none");
             $("#expression_text").html(this.active_question.expression_with_breaks());
-            $("#expression_text")[0].style.display = "block";
+            $("#expression_text").css("display", "block");
             if (this.active_question.readings.length > 0){
-                answeryesno.style.display = "none";
-                answertext.style.display = "block";
-                answerfield.focus();
+                $("#answeryesno").css("display", "none");
+                $("#answertext").css("display", "block");
+                $("#answerfield").focus();
             } else {
-                answertext.style.display = "none";
-                answeryesno.style.display = "block";
+                $("#answertext").css("display", "none");
+                $("#answeryesno").css("display", "block");
                 $("#answeryesbtn")[0].focus();
             }
             if (this.active_question.audio) {
-                audiobtn.style.display = "block";
+                $("#audiobtn").css("display", "block");
             } else {
-                audiobtn.style.display = "none";
+                $("#audiobtn").css("display", "none");
             }
         }
     }
 
     finish(){
-        continuediv.style.display = "none";
-        answeryesno.style.display = "none";
-        answertext.style.display = "none";
+        $("#continue").css("display", "none");
+        $("#answeryesno").css("display", "none");
+        $("#answertext").css("display", "none");
+        $("#expression_text").css("display", "block");
         $("#expression_text").html("All done!");
     }
 
@@ -97,11 +90,11 @@ class Quiz {
             return;
         }
         this.active_question = null;
-        audiobtn.style.display = "none";
-        resultsdiv.style.display = "none";
-        $("#expression_text")[0].style.display = "none";
-        continuediv.style.display = "none";
-        answerfield.value = "";
+        $("#audiobtn").css("display", "none");
+        $("#results").css("display", "none");
+        $("#expression_text").css("display", "none");
+        $("#continue").css("display", "none");
+        $("#answerfield").val("");
         if (thisquiz.questions.length == 0){
             $.post("/quiz/post/due", {"quizlist": this.quizlist.id},
                   function(response){
@@ -125,8 +118,8 @@ class Quiz {
             this.quizlist = quizlist;
         }
         this.show_question();
-        selectionform.style.display = "none";
-        quizform.style.display = "block";
+        $("#selectionform").css("display", "none");
+        $("#quizform").css("display", "block");
         $("#quizlist_title").html(this.quizlist.name);
     }
 
@@ -152,8 +145,8 @@ class Quiz {
                 $("#selectiontable").append(row);
                 if (did_focus == false) link.focus();
             }
-            quizform.style.display = "none";
-            selectionform.style.display = "block";
+            $("#quizform").css("display", "none");
+            $("#selectionform").css("display", "block");
         })
     }
 
@@ -161,12 +154,12 @@ class Quiz {
         if (this.active_question == null){
             return;
         }
-        answertext.style.display = "none";
-        answeryesno.style.display = "none";
-        continuediv.style.display = "block";
+        $("#answertext").css("display", "none");
+        $("#answeryesno").css("display", "none");
+        $("#continue").css("display", "block");
         $("#continuebtn")[0].focus();
-        resultsdiv.style.display = "block";
-        resultsdiv.innerHTML = this.active_question.toString();
+        $("#results").css("display", "block");
+        $("#results").html(this.active_question.toString());
     }
 
     guess(success: boolean|null = null){
@@ -178,7 +171,7 @@ class Quiz {
         }
         if (success == null){
             success = false;
-            answer = answerfield.value;
+            answer = <string>$("#answerfield").val();
             if (!answer){
                 return;
             }
@@ -198,13 +191,13 @@ class Quiz {
         }
         $.post(success_url, {"expression": this.active_question.expression},
                function(response){
-            answerfield.value = "";
+            $("#answerfield").val("");
             thisquiz.show_results();
         })
     }
 
     submit() {
-        if ($("#continue")[0].style.display != "none"){
+        if ($("#continue").css("display") != "none"){
         }
     }
 }
@@ -214,16 +207,16 @@ const quiz = new Quiz();
 $(document).ready(function(){
     quiz.initialize_selection();
     $(document).keypress(function(e) {
-        if (e.key == "Enter" && answertext.style.display != "none"){
+        if (e.key == "Enter" && $("#answertext").css("display") != "none"){
             e.preventDefault();
             quiz.guess();
-        } else if ((e.key == "Enter" || e.key == "c") && continuediv.style.display != "none"){
+        } else if ((e.key == "Enter" || e.key == "c") && $("#continue").css("display") != "none"){
             e.preventDefault();
             $("#continuebtn").trigger("click");
-        } else if (e.key == "p" && audiobtn.style.display != "none"){
+        } else if (e.key == "p" && $("#audiobtn").css("display") != "none"){
             e.preventDefault();
             $("#audiobtn").trigger("click");
-        } else if (answeryesno.style.display != "none"){
+        } else if ($("#answeryesno").css("display") != "none"){
             if (e.key == "y"){
                 e.preventDefault();
                 $("#answeryesbtn").trigger("click");
