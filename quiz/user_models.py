@@ -35,7 +35,8 @@ class UserExpression(models.Model):
     @classmethod
     def get_due_expressions(cls, user, quizlist=None):
         now = utcnow()
-        due_uexs = UserExpression.objects.filter(user=user, due__lt=now)
+        due_uexs = (UserExpression.objects.filter(user=user, due__lt=now)
+                                          .order_by("due"))
         if quizlist is not None:
             if isinstance(quizlist, int):
                 quizlist = QuizList.objects.get(id=quizlist)
@@ -50,7 +51,8 @@ class UserExpression(models.Model):
                     uex = UserExpression.objects.create(
                         user=user, expression=Expression.objects.get(
                             text=list_expressions[0]))
-                    due_uexs = [uex]
+                    if due_uexs.count() == 0:
+                        due_uexs = [uex]
 
         if isinstance(due_uexs, QuerySet):
             due_uexs = [uex for uex in due_uexs]
@@ -64,8 +66,11 @@ class UserExpression(models.Model):
         for r in list(readings):
             romr = romkan.to_roma(r)
             readings.append(romr)
-            if "nn" in romr:
-                readings.append(romr.replace("nn", "n"))
+            if "n'" in romr:
+                romr = romr.replace("n'", "nn")
+                readings.append(romr)
+            if "nnn" in romr:
+                readings.append(romr.replace("nnn", "nn"))
         rdict = {"expression": ex.text,
                  "readings": readings,
                  "associations": [{"sense": a.sense, "reading": a.reading}
