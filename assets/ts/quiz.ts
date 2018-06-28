@@ -1,4 +1,5 @@
 const static_url = $("#static")[0].innerHTML;
+const audio = new Audio();
 
 class Association {
     constructor(public expression: string, public reading: string, public sense: string){}
@@ -17,7 +18,7 @@ class Question {
     public associations: Association[] = [];
 
     constructor(public expression: string, public readings: string[],
-                assoc_list: any[], public audio: string){
+                private assoc_list: any[], public audio: string){
         for (var val of assoc_list) {
             let association = new Association(expression, val.reading, val.sense);
             this.associations.push(association);
@@ -50,8 +51,6 @@ class Quiz {
     public questions: Question[] = [];
     public quizlist: QuizList | null = null;
     public active_question: Question | null = null;
-
-    constructor(){}
 
     get_next_question(){
         if (this.active_question == null && this.questions.length > 0){
@@ -241,7 +240,13 @@ $(document).ready(function(){
     $("#audiobtn").click(function(e){
         e.preventDefault();
         if (quiz.active_question != null && quiz.active_question.audio){
-            new Audio(static_url + quiz.active_question.audio).play();
+            if (audio.duration > 0 && !audio.paused){
+                audio.pause();
+            } else {
+                audio.src = static_url + quiz.active_question.audio;
+                audio.load();
+                audio.play();
+            }
         }
     })
 });
