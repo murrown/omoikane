@@ -25,8 +25,10 @@ class QuizList(models.Model):
 
 
 class QuizListItem(models.Model):
-    quizlist = models.ForeignKey(QuizList, null=False, db_index=True)
-    expression = models.ForeignKey(Expression, null=False)
+    quizlist = models.ForeignKey(QuizList, null=False, db_index=True,
+                                 on_delete=models.CASCADE)
+    expression = models.ForeignKey(Expression, null=False,
+                                   on_delete=models.CASCADE)
     list_order = models.IntegerField(null=False)
 
     class Meta:

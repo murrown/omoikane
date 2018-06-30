@@ -23,8 +23,10 @@ def utcnow():
 
 
 class UserExpression(models.Model):
-    user = models.ForeignKey(User, null=False, db_index=True)
-    expression = models.ForeignKey(Expression, null=False, db_index=True)
+    user = models.ForeignKey(User, null=False, db_index=True,
+                             on_delete=models.CASCADE)
+    expression = models.ForeignKey(Expression, null=False, db_index=True,
+                                   on_delete=models.CASCADE)
     modified = models.DateTimeField(auto_now=True)
     due = models.DateTimeField(default=utcnow)
     interval = models.IntegerField(default=0, null=False)
@@ -114,6 +116,6 @@ class UserExpression(models.Model):
 
 class UserGuess(models.Model):
     user_expression = models.ForeignKey(
-        UserExpression, null=False, db_index=True)
+        UserExpression, null=False, db_index=True, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
     success = models.BooleanField(null=False)

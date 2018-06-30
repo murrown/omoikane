@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, CASCADE
 from django.apps import apps
 
 from more_itertools import unique_everseen
@@ -82,7 +82,8 @@ class Expression(models.Model):
 
 class Association(models.Model):
     entry_id = models.IntegerField(null=True, db_index=True)
-    expression = models.ForeignKey(Expression, null=True, db_index=True)
+    expression = models.ForeignKey(Expression, null=True, db_index=True,
+                                   on_delete=CASCADE)
     reading = models.CharField(max_length=75, null=True)
     sense = models.TextField(null=False)
     sense_number = models.IntegerField()

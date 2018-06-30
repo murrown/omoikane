@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import Q, F
+from django.db.models import Q, F, CASCADE
 from .definition_models import Expression, Association, RISQUE_VALUES
 
 
@@ -16,7 +16,8 @@ class KeyValue(models.Model):
 
 
 class ExpressionKeyValue(KeyValue):
-    expression = models.ForeignKey(Expression, null=False, db_index=True)
+    expression = models.ForeignKey(Expression, null=False, db_index=True,
+                                   on_delete=CASCADE)
 
     class Meta:
         index_together = [("key", "value")]
