@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 
 from datetime import datetime, timedelta
 from pytz import utc
+from random import random
 import romkan
 from .definition_models import Association, Expression
 from .list_models import QuizList
@@ -85,7 +86,9 @@ class UserExpression(models.Model):
         # self.due is always a little more than self.modified + self.interval
         self.interval = max(DEFAULT_INTERVAL, self.interval,
                             (now - self.modified).total_seconds())
-        due = now + timedelta(0, self.interval * MULTIPLIER)
+        due_factor = (MULTIPLIER-1) * 2 * (random() + random() + random()) / 3
+        assert due_factor > 0
+        due = now + timedelta(0, self.interval + (self.interval * due_factor))
         new_interval = due - now
         if self.interval and new_interval < timedelta(0, self.interval):
             raise Exception("Bad interval.")
