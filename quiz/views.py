@@ -1,22 +1,29 @@
 from django.shortcuts import render, render_to_response
 from django.template import RequestContext
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.http import HttpResponse, JsonResponse
 from .models import QuizList, QuizListItem, UserExpression
 from .user_models import utcnow
 import urllib
 
 
-@login_required(login_url="/login/")
+GUEST_USER = User.objects.get(username="guest")
+
+
 def index(request):
     context = {}
     return render(request, "quiz/index.html", context=context)
 
+
 def lists(request):
     results = []
     now = utcnow()
-    uexs = (UserExpression.objects
-            .filter(user=request.user).select_related("expression"))
+    user = request.user
+    if user.is_anonymous:
+        user = GUEST_USER
+    uexs = (UserExpression.objects.filter(user=user)
+                                  .select_related("expression"))
     done_exs = set([uex.expression.id for uex in uexs if uex.due > now])
     all_exs = set([uex.expression.id for uex in uexs])
     for ql in QuizList.objects.order_by("name").all():
@@ -29,23 +36,31 @@ def lists(request):
     response = JsonResponse({"results": results}, safe=False)
     return response
 
+
 def due(request):
     user = request.user
+    if user.is_anonymous:
+        user = GUEST_USER
     _, quizlist_id = request.body.decode().split('=')
     quizlist = QuizList.objects.get(id=int(quizlist_id))
     due_exs = UserExpression.get_due_expressions(user=user, quizlist=quizlist)
     response = JsonResponse({"results": [uex.quiz_dict for uex in due_exs]})
     return response
 
+
 def user_expression_from_request(request):
     user = request.user
+    if user.is_anonymous:
+        user = GUEST_USER
     _, expression_text = request.body.decode().split('=')
     expression_text = urllib.parse.unquote_plus(expression_text)
     return UserExpression.objects.get(
         user=user, expression__text=expression_text)
 
+
 def success(request):
     return HttpResponse(user_expression_from_request(request).succeed())
+
 
 def failure(request):
     return HttpResponse(user_expression_from_request(request).fail())
