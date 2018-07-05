@@ -3,12 +3,12 @@ from django.template import RequestContext
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import HttpResponse, JsonResponse
-from .models import QuizList, QuizListItem, UserExpression
+from .models import QuizList, QuizListItem, Expression, UserExpression
 from .user_models import utcnow
 import urllib
 
 
-GUEST_USER = User.objects.get(username="guest")
+GUEST_USER, _ = User.objects.get_or_create(username="guest")
 
 
 def index(request):
@@ -54,8 +54,13 @@ def user_expression_from_request(request):
         user = GUEST_USER
     _, expression_text = request.body.decode().split('=')
     expression_text = urllib.parse.unquote_plus(expression_text)
-    return UserExpression.objects.get(
-        user=user, expression__text=expression_text)
+    try:
+        return UserExpression.objects.get(
+            user=user, expression__text=expression_text)
+    except UserExpression.DoesNotExist:
+        e = Expression.objects.get(text=expression_text)
+        ue = UserExpression.objects.create(user=user, expression=e)
+        return ue
 
 
 def success(request):
