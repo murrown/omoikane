@@ -88,3 +88,15 @@ class TestViews(TestCase):
         self.assertEquals(content["results"][0]["done"], 0)
         self.assertEquals(content["results"][0]["tried"], 0)
         self.assertEquals(content["results"][0]["total"], len(ql.expressions))
+
+        self.client.generic("POST", "/quiz/post/failure", "expression=一")
+        response = self.client.generic("GET", "/quiz/get/lists")
+        content = json.loads(response.content)
+        self.assertEquals(content["results"][0]["done"], 0)
+        self.assertEquals(content["results"][0]["tried"], 1)
+
+        self.client.generic("POST", "/quiz/post/success", "expression=一")
+        response = self.client.generic("GET", "/quiz/get/lists")
+        content = json.loads(response.content)
+        self.assertEquals(content["results"][0]["done"], 1)
+        self.assertEquals(content["results"][0]["tried"], 1)
